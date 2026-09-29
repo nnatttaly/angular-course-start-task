@@ -49,6 +49,11 @@ ng config projects.task-board.prefix
 Затем найдите в файле и выпишите: где задан выходной каталог, где подключаются глобальные
 стили, где перечислены бюджеты.
 
+Ответ: 
+- выходной каталог: не задан
+- глобальные стили: architect.build.options.styles
+- бюджеты: architect.build.configurations.production.budgets
+
 ### Шаг 2. Дефолты схематик для команды
 
 Зафиксируйте соглашения так, чтобы их не приходилось повторять флагами.
@@ -59,6 +64,11 @@ ng config projects.task-board.prefix
 - стиль компонентов — `scss`;
 - стратегия обнаружения изменений — `OnPush`;
 - спеки для сервисов — не генерировать.
+
+Ответ:
+ng config schematics.@schematics/angular:component.style scss
+ng config schematics.@schematics/angular:component.changeDetection OnPush
+ng config schematics.@schematics/angular:service.skipTests true
 
 Проверка:
 
@@ -144,8 +154,13 @@ npx source-map-explorer "dist/task-board/browser/*.js"
 Ответьте:
 
 1. Какая часть бандла приходится на код Angular, а какая — на ваш?
+Ответ: на node_modules 98.05% (193.18kb), из них на @angular 89.29% (175.93kb); на мой код (src) 1.89% (3.72kb)
+
 2. Что попало в `initial`?
+Ответ: весь мой код и весь нужный код Angular, ленивых роутов нет
+
 3. Что изменится в размерах, если собрать с `--configuration development`? Почему?
+Ответ: production:  202.07 kB, development: 1.28 MB, размер сильно вырос, так как в development отключены минификация, tree-shaking
 
 ### Шаг 7. Посмотреть на «взрослый» конфиг
 
@@ -153,12 +168,19 @@ npx source-map-explorer "dist/task-board/browser/*.js"
 проект `angular-injection-token`. Ответьте:
 
 1. Какой у него билдер и чем он отличается от билдера в вашем `task-board`?
+Ответ: там "builder": "@angular-devkit/build-angular:browser", то есть webpack (Legacy), а тут "builder": "@angular/build:application", то есть esbuild + Vite (Дефолт для новых проектов с v17)
+
 2. Почему у этого проекта заполнено поле `root`, а у вашего оно пустое?
+Ответ: root - это путь к папке проекта. Тут task-board один в воркспейсе и лежит в корне, следовательно root пустой, а там angular-injection-token один из многих проектов в общем репозитории, у него своя вложенная директория
+
 3. Как имя проекта в `angular.json` связано с командой
    `npm run serve:angular-injection-token` в [package.json](../../../../package.json)?
+Ответ: по имени проекта в angular.json cli различает, какой проект собирать/запускать. Это имя используется в команде "ng serve angular-injection-token". А npm run serve:angular-injection-token в scripts в package.json это алиас для нее
+
 4. Что нужно поменять в конфиге проекта, чтобы перевести его на
    `@angular/build:application`? (Отвечать словами, менять ничего не нужно —
    миграция для этого называется `use-application-builder`.)
+Ответ: ng update @angular/cli --name use-application-builder Она меняет билдер ("builder": "@angular/build:application"), переименовывает опции (browser вместо main) и правит пути (dist/task-board/browser/)
 
 ---
 
